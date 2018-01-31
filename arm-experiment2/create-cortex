@@ -1,0 +1,37 @@
+# load this by typing the following: 
+# include @arm-experiment/create-cortex 
+
+# Coppied from STM32W_MB951 and stm32w108
+# SVD soruced from http://emul8.org/emul8_files/svd/STM32W108.svd
+
+mach create
+
+#i @Experiment_SPI.cs
+
+using sysbus
+
+machine LoadPlatformDescriptionFromString
+"""
+nvic: IRQControllers.NVIC @ sysbus 0xE000E000 { systickFrequency: 72000000; IRQ -> cpu@0 }
+cpu: CPU.CortexM @ sysbus { cpuType: "cortex-m4"; nvic: nvic }
+flash: Memory.MappedMemory @ sysbus 0x0 { size: 0x40000 }
+memory: Memory.MappedMemory @ sysbus 0x20000000 { size: 0x10000 }
+experiment_SPI: SPI.Experiment_SPI @ sysbus 0x30000000
+"""
+
+sysbus LoadELF @arm-experiment2/testApp.elf
+
+#sysbus.cpu ExecutionMode SingleStep  #using sysbus allows shorter syntax:
+#cpu ExecutionMode SingleStep
+
+cpu LogFunctionNames true
+
+cpu StartGdbServer 9999
+
+
+
+
+
+
+
+

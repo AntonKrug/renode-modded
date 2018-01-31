@@ -1,0 +1,23 @@
+# load this by typing the following: 
+# include @arm-experiment/create-cortex 
+
+# Coppied from STM32W_MB951 and stm32w108
+# SVD soruced from http://emul8.org/emul8_files/svd/STM32W108.svd
+
+mach create
+
+machine LoadPeripheralsFromJSONFile @arm-experiment/cortex-m3.json
+
+using sysbus
+
+sysbus ApplySVD @arm-experiment/cortex-m3.svd
+
+machine LoadPlatformDescriptionFromString "experiment_SPI: SPI.Experiment_SPI @ sysbus 0x30000000"
+
+
+sysbus LoadELF @arm-experiment/testApp.elf
+
+#sysbus.cpu ExecutionMode SingleStep  #using sysbus allows shorter syntax:
+#cpu ExecutionMode SingleStep
+
+cpu StartGdbServer 9999

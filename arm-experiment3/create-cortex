@@ -1,0 +1,73 @@
+# load this by typing the following: 
+# include @arm-experiment/create-cortex 
+
+# Coppied from STM32W_MB951 and stm32w108
+# SVD soruced from http://emul8.org/emul8_files/svd/STM32W108.svd
+
+mach create
+
+
+#using sysbus allows shorter syntax instead of "sysbus.cpu" just "cpu"
+using sysbus
+
+
+machine LoadPlatformDescriptionFromString
+"""
+nvic:           IRQControllers.NVIC        @ sysbus 0xE000E000 { systickFrequency: 11000000; IRQ -> cpu@0 }
+cpu:            CPU.CortexM                @ sysbus { cpuType: "cortex-m3"; nvic: nvic }
+code:           Microsemi.CodeRamapper     @ sysbus 0x00000000
+eSRAM:          Memory.MappedMemory        @ sysbus 0x20000000 { size: 0x10000       }
+fabric:         Memory.MappedMemory        @ sysbus 0x30000000 { size: 0x10000000    }
+UART_0:         UART.NS16550               @ sysbus 0x40000000 { wideRegisters: 1    }
+Config_DDR_1:   Memory.MappedMemory        @ sysbus 0x40020400 { size: 0xFC00        }
+SYSREG:         Microsemi.SYSREG           @ sysbus 0x40038000
+UART_1:         UART.NS16550               @ sysbus 0x40010000 { wideRegisters: 1    }
+Peripherals_BB: Memory.MappedMemory        @ sysbus 0x42000000 { size: 0x2000000     }
+eNVM:           Memory.MappedMemory        @ sysbus 0x60000000 { size: 0x80000       }
+experiment_SPI: SPI.Experiment_SPI         @ sysbus 0xEFF00000
+"""
+
+#machine LoadPlatformDescriptionFromString
+#"""
+#nvic:           IRQControllers.NVIC        @ sysbus 0xE000E000 { systickFrequency: 111000000; IRQ -> cpu@0 }
+#cpu:            CPU.CortexM                @ sysbus { cpuType: "cortex-m3"; nvic: nvic }
+#code:           Memory.MappedMemory        @ sysbus 0x00000000 { size: 0x80000       }
+#eSRAM:          Memory.MappedMemory        @ sysbus 0x20000000 { size: 0x10000       }
+#fabric:         Memory.MappedMemory        @ sysbus 0x30000000 { size: 0x10000000    }
+#UART_0:         UART.NS16550               @ sysbus 0x40000000 { wideRegisters: 1    }
+#Config_DDR_1:   Memory.MappedMemory        @ sysbus 0x40020400 { size: 0xFC00        }
+#SYSREG:         Memory.MappedMemory        @ sysbus 0x40038000 { size: 0x1000        }
+#UART_1:         UART.NS16550               @ sysbus 0x40010000 { wideRegisters: 1    }
+#Peripherals_BB: Memory.MappedMemory        @ sysbus 0x42000000 { size: 0x2000000     }
+#eNVM:           Memory.MappedMemory        @ sysbus 0x60000000 { size: 0x80000       }
+#experiment_SPI: SPI.Experiment_SPI         @ sysbus 0xEFF00000
+#"""
+
+#Config_DDR_0:   Memory.MappedMemory        @ sysbus 0x40020000 { size: 0x400         }
+
+#showAnalyzer UART_0 
+showAnalyzer UART_1
+
+sysbus LoadELF @arm-experiment3/binary/polled_uart.elf
+
+cpu VectorTableOffset 0x20000000
+
+#setup the PLL status to something so I will avoid the loop in the complete_clock_config at system initialisation
+sysbus WriteDoubleWord 0x40038150 0xffffffff
+
+#sysbus WriteDoubleWord 0x4 0x20000001 
+#sysbus WriteDoubleWord 0x0 0x2000f000 
+
+#cpu ExecutionMode SingleStep
+
+#cpu LogFunctionNames true
+
+cpu StartGdbServer 10000
+
+
+
+
+
+
+
+
